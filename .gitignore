@@ -3,8 +3,13 @@ node_modules/
 .pnp
 .pnp.*
 .DS_Store
+Thumbs.db
+Desktop.ini
 *.pem
 *.log
+*.tmp
+*.bak
+*.swp
 .vercel
 *.tsbuildinfo
 untracked_files.txt
@@ -13,7 +18,8 @@ untracked_files.txt
 .agent/
 .vscode/
 .idea/
-.DS_Store
+.history/
+.gemini/
 
 # Frontend
 **/node_modules/
@@ -23,6 +29,7 @@ untracked_files.txt
 **/.env*
 !**/.env.example
 **/next-env.d.ts
+**/dist/
 
 # Backend
 **/__pycache__/
@@ -32,14 +39,15 @@ untracked_files.txt
 **/$py.class
 **/.pytest_cache/
 **/uv.lock
-backend/.env*
 backend/build.log
 
-# OS files
-Thumbs.db
-Desktop.ini
+# Environment Files (Root)
+.env
+.env.*
+!.env.example
 
-# Build artifacts
-dist/
-target/
-build/
+# Build/Dist folders
+/dist/
+/build/
+/out/
+/coverage/

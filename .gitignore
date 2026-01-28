@@ -1,0 +1,45 @@
+# General
+node_modules/
+.pnp
+.pnp.*
+.DS_Store
+*.pem
+*.log
+.vercel
+*.tsbuildinfo
+untracked_files.txt
+
+# Agent and IDE
+.agent/
+.vscode/
+.idea/
+.DS_Store
+
+# Frontend
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/.env*
+!**/.env.example
+**/next-env.d.ts
+
+# Backend
+**/__pycache__/
+**/.venv/
+**/.uv/
+**/*.py[cod]
+**/$py.class
+**/.pytest_cache/
+**/uv.lock
+backend/.env*
+backend/build.log
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Build artifacts
+dist/
+target/
+build/

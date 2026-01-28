@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { CheckCircle, Circle, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -37,6 +38,7 @@ const MOCK_TASKS = [
 
 export default function DashboardPage() {
     const { getToken } = useAuth();
+    const router = useRouter();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [stageInfo, setStageInfo] = useState<UserStage | null>(null);
     const [loading, setLoading] = useState(true);
@@ -48,15 +50,25 @@ export default function DashboardPage() {
                 if (!token) return;
 
                 const [profileRes, stageRes] = await Promise.all([
-                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/profile`, {
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/user/profile`, {
                         headers: { Authorization: `Bearer ${token}` }
                     }),
-                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/stage`, {
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/user/stage`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                 ]);
 
-                if (profileRes.ok) setProfile(await profileRes.json());
+                if (profileRes.ok) {
+                    const profileData = await profileRes.json();
+                    setProfile(profileData);
+
+                    // Logic flow: If onboarding not completed, redirect
+                    if (profileData && profileData.onboarding_completed === false) {
+                        router.push("/onboarding");
+                        return;
+                    }
+                }
+
                 if (stageRes.ok) setStageInfo(await stageRes.json());
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
@@ -66,7 +78,7 @@ export default function DashboardPage() {
         };
 
         fetchData();
-    }, [getToken]);
+    }, [getToken, router]);
 
     if (loading) {
         return (

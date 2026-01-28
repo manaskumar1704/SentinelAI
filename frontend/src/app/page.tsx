@@ -2,11 +2,22 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { ArrowRight, CheckCircle2, Globe2, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SignedOut, SignInButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 
 export default function Home() {
+  const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push("/dashboard");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -22,6 +33,21 @@ export default function Home() {
     hidden: { y: 20, opacity: 0 },
     show: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 50 } },
   };
+
+  if (isLoaded && isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+          <p className="text-muted-foreground animate-pulse">Redirecting to dashboard...</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-100 via-background to-background dark:from-indigo-950 dark:via-background dark:to-background overflow-hidden relative selection:bg-indigo-500/30">
@@ -66,6 +92,13 @@ export default function Home() {
               </Button>
             </SignInButton>
           </SignedOut>
+          <SignedIn>
+            <Link href="/dashboard">
+              <Button size="lg" className="h-12 px-8 text-base rounded-full shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all duration-300">
+                Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </SignedIn>
           <Button variant="outline" size="lg" className="h-12 px-8 text-base rounded-full border-2 hover:bg-muted/50 transition-all duration-300">
             Learn Flow
           </Button>

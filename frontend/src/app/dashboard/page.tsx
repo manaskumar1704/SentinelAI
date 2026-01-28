@@ -79,7 +79,11 @@ export default function DashboardPage() {
     const currentStage = stageInfo?.stage || 1;
 
     return (
-        <div className="min-h-screen bg-background p-6 md:p-12">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="min-h-screen bg-background p-6 md:p-12"
+        >
             <div className="mx-auto max-w-6xl space-y-8">
 
                 {/* Welcome Header */}
@@ -112,10 +116,10 @@ export default function DashboardPage() {
                             <div
                                 key={s.number}
                                 className={`relative overflow-hidden rounded-xl border p-4 transition-all ${isActive
-                                        ? "border-indigo-500/50 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
-                                        : isPast
-                                            ? "border-green-500/30 bg-green-500/5 opacity-60"
-                                            : "border-white/5 bg-white/5 opacity-40"
+                                    ? "border-indigo-500/50 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+                                    : isPast
+                                        ? "border-green-500/30 bg-green-500/5 opacity-60"
+                                        : "border-white/5 bg-white/5 opacity-40"
                                     }`}
                             >
                                 <div className="flex items-center justify-between mb-2">
@@ -231,6 +235,6 @@ export default function DashboardPage() {
                     </motion.div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

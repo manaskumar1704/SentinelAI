@@ -115,7 +115,11 @@ export default function CounsellorPage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)] bg-background">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col h-[calc(100vh-64px)] bg-background"
+        >
             <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                 <div className="mx-auto max-w-3xl space-y-6">
                     <AnimatePresence initial={false}>
@@ -186,6 +190,6 @@ export default function CounsellorPage() {
                     </p>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

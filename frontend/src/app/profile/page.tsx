@@ -86,7 +86,11 @@ export default function ProfilePage() {
     if (!data) return <div className="text-center py-20">Please complete onboarding first.</div>;
 
     return (
-        <div className="min-h-screen bg-background p-6 md:p-12">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="min-h-screen bg-background p-6 md:p-12"
+        >
             <div className="mx-auto max-w-4xl space-y-8">
 
                 <div className="flex items-center justify-between">
@@ -158,6 +162,6 @@ export default function ProfilePage() {
                 </div>
 
             </div>
-        </div>
+        </motion.div>
     );
 }

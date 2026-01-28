@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, FileText, Calendar, Clock, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, FileText, Calendar, Clock, ChevronRight, CircleDollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/button"; // Typo in import, wait, Progress isn't in ui/button. I'll make a custom one.
 import { cn } from "@/lib/utils";
 
 // Mock data for guidance (since backend endpoints for this part were identified as missing)
@@ -64,7 +63,11 @@ export default function GuidancePage() {
     }
 
     return (
-        <div className="min-h-screen bg-background p-6 md:p-12">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="min-h-screen bg-background p-6 md:p-12"
+        >
             <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-4 gap-8">
 
                 {/* Sidebar: Locked Universities */}
@@ -133,7 +136,7 @@ export default function GuidancePage() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 {task.type === "document" && <FileText className="h-4 w-4 text-muted-foreground" />}
-                                                {task.type === "payment" && <DollarSignIcon className="h-4 w-4 text-muted-foreground" />}
+                                                {task.type === "payment" && <CircleDollarSign className="h-4 w-4 text-muted-foreground" />}
                                                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                             </div>
                                         </div>
@@ -145,26 +148,7 @@ export default function GuidancePage() {
                 </div>
 
             </div>
-        </div>
+        </motion.div>
     );
 }
 
-function DollarSignIcon(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <line x1="12" x2="12" y1="2" y2="22" />
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-    )
-}

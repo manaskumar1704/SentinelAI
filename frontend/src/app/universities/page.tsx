@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { Search, MapPin, DollarSign, Lock, Unlock, AlertTriangle, CheckCircle2, Bookmark, Star } from "lucide-react";
+import Link from "next/link";
+import { Search, MapPin, DollarSign, Lock, Unlock, AlertTriangle, CheckCircle2, Bookmark, Star, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

@@ -48,10 +48,10 @@ export default function DashboardPage() {
                 if (!token) return;
 
                 const [profileRes, stageRes] = await Promise.all([
-                    fetch("http://localhost:8000/api/user/profile", {
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/profile`, {
                         headers: { Authorization: `Bearer ${token}` }
                     }),
-                    fetch("http://localhost:8000/api/user/stage", {
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/stage`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                 ]);

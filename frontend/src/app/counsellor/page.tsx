@@ -56,7 +56,7 @@ export default function CounsellorPage() {
             // or implement basic streaming handling if preferred. 
             // Let's implement full streaming for a premium feel.
 
-            const response = await fetch("http://localhost:8000/api/counsellor/stream", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counsellor/stream`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

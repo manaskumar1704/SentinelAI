@@ -7,12 +7,21 @@ Thumbs.db
 Desktop.ini
 *.pem
 *.log
+*.txt
 *.tmp
 *.bak
 *.swp
 .vercel
 *.tsbuildinfo
 untracked_files.txt
+tracked_files.txt
+staged_files.txt
+
+# Exceptions for documentation
+!README.md
+!AGENTS.md
+!PLAN.md
+!*.md
 
 # Agent and IDE
 .agent/

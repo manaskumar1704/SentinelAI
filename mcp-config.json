@@ -1,0 +1,25 @@
+{
+    "mcpServers": {
+        "supabase": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@supabase/mcp-server"
+            ],
+            "env": {
+                "SUPABASE_URL": "https://ljuetdcksktsmnxynukp.supabase.co",
+                "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqdWV0ZGNrc2t0c21ueHludWtwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTcwMTY2OSwiZXhwIjoyMDg1Mjc3NjY5fQ.LscWwGdQqSJeg9ioyr5OHt3RjPcStprnKCoR2MDc2hU"
+            }
+        },
+        "github": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-github"
+            ],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"
+            }
+        }
+    }
+}

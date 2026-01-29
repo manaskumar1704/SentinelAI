@@ -1,11 +1,13 @@
 """
 Onboarding Router
 
-API endpoints for user onboarding data.
+API endpoints for user onboarding data with database persistence.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from database import get_db
 from middleware.auth import get_current_user
 from models.user import ClerkUser
 from models.onboarding import (
@@ -17,6 +19,7 @@ from services.onboarding import (
     get_onboarding_status,
     save_onboarding_data,
     update_onboarding_data,
+    ensure_user_exists,
 )
 
 
@@ -25,20 +28,25 @@ router = APIRouter()
 
 @router.get("")
 async def get_onboarding(
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> OnboardingStatus:
     """
     Get current onboarding status.
     
     Returns completion percentage and existing data.
     """
-    return get_onboarding_status(user.user_id)
+    # Ensure user exists in database
+    await ensure_user_exists(db, user.user_id, user.email, user.full_name)
+    
+    return await get_onboarding_status(db, user.user_id)
 
 
 @router.post("")
 async def submit_onboarding(
     data: OnboardingData,
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> OnboardingStatus:
     """
     Submit complete onboarding data.
@@ -46,14 +54,18 @@ async def submit_onboarding(
     This replaces any existing onboarding data.
     After completion, the AI Counsellor is unlocked.
     """
-    save_onboarding_data(user.user_id, data)
-    return get_onboarding_status(user.user_id)
+    # Ensure user exists in database
+    await ensure_user_exists(db, user.user_id, user.email, user.full_name)
+    
+    await save_onboarding_data(db, user.user_id, data)
+    return await get_onboarding_status(db, user.user_id)
 
 
 @router.patch("")
 async def update_onboarding(
     update: OnboardingPartialUpdate,
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> OnboardingStatus:
     """
     Update partial onboarding data.
@@ -61,7 +73,7 @@ async def update_onboarding(
     Only provided sections will be updated.
     Requires existing onboarding data.
     """
-    result = update_onboarding_data(user.user_id, update)
+    result = await update_onboarding_data(db, user.user_id, update)
     
     if result is None:
         raise HTTPException(
@@ -69,22 +81,23 @@ async def update_onboarding(
             detail="No existing onboarding data to update. Use POST to submit initial data."
         )
     
-    return get_onboarding_status(user.user_id)
+    return await get_onboarding_status(db, user.user_id)
 
 
 @router.get("/status")
 async def check_completion(
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Quick check if onboarding is complete.
     
     Used to gate access to AI Counsellor.
     """
-    status = get_onboarding_status(user.user_id)
+    onboarding_status = await get_onboarding_status(db, user.user_id)
     
     return {
-        "is_complete": status.is_complete,
-        "can_access_counsellor": status.is_complete,
-        "completion_percentage": status.completion_percentage,
+        "is_complete": onboarding_status.is_complete,
+        "can_access_counsellor": onboarding_status.is_complete,
+        "completion_percentage": onboarding_status.completion_percentage,
     }

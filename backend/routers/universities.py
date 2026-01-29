@@ -1,14 +1,15 @@
 """
 Universities Router
 
-API endpoints for university search and recommendations.
+API endpoints for university search, recommendations, and shortlist with database persistence.
 """
 
-from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from database import get_db
 from middleware.auth import get_current_user, get_optional_user
 from models.user import ClerkUser
 from models.university import (
@@ -20,24 +21,15 @@ from models.university import (
 )
 from services.universities import search_universities, get_recommendations
 from services.onboarding import get_onboarding_data
+from services.shortlist import (
+    get_user_shortlist,
+    add_to_shortlist,
+    lock_university,
+    remove_from_shortlist,
+)
 
 
 router = APIRouter()
-
-# In-memory shortlist storage for MVP
-_shortlist_store: dict[str, list[ShortlistedUniversity]] = {}
-
-
-def get_user_shortlist(user_id: str) -> list[ShortlistedUniversity]:
-    """Get user's shortlisted universities."""
-    return _shortlist_store.get(user_id, [])
-
-
-def add_to_shortlist(user_id: str, item: ShortlistedUniversity) -> None:
-    """Add university to user's shortlist."""
-    if user_id not in _shortlist_store:
-        _shortlist_store[user_id] = []
-    _shortlist_store[user_id].append(item)
 
 
 class SearchParams(BaseModel):
@@ -64,7 +56,8 @@ async def search(
 
 @router.get("/recommendations")
 async def recommendations(
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> list[UniversityRecommendation]:
     """
     Get personalized university recommendations.
@@ -72,28 +65,30 @@ async def recommendations(
     Based on user's onboarding profile.
     Returns universities categorized as Dream/Target/Safe.
     """
-    profile = get_onboarding_data(user.user_id)
+    profile = await get_onboarding_data(db, user.user_id)
     
     recs = await get_recommendations(profile, limit=10)
     return recs
 
 
 @router.get("/shortlist")
-async def get_shortlist(
-    user: ClerkUser = Depends(get_current_user)
+async def get_shortlist_endpoint(
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> list[ShortlistedUniversity]:
     """
     Get user's shortlisted universities.
     
     Returns all universities the user has saved.
     """
-    return get_user_shortlist(user.user_id)
+    return await get_user_shortlist(db, user.user_id)
 
 
 @router.post("/shortlist")
 async def add_to_user_shortlist(
     request: ShortlistRequest,
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> ShortlistedUniversity:
     """
     Add a university to the user's shortlist.
@@ -114,31 +109,23 @@ async def add_to_user_shortlist(
     
     university = universities[0]
     
-    # Check if already shortlisted
-    current_shortlist = get_user_shortlist(user.user_id)
-    for item in current_shortlist:
-        if item.university.name == university.name:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="University already in shortlist"
-            )
-    
-    shortlisted = ShortlistedUniversity(
-        university=university,
-        category=request.category,
-        is_locked=False,
-        added_at=datetime.utcnow().isoformat(),
-    )
-    
-    add_to_shortlist(user.user_id, shortlisted)
-    
-    return shortlisted
+    try:
+        shortlisted = await add_to_shortlist(
+            db, user.user_id, university, request.category
+        )
+        return shortlisted
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.post("/lock")
-async def lock_university(
+async def lock_university_endpoint(
     request: LockRequest,
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> ShortlistedUniversity:
     """
     Lock a university from the shortlist.
@@ -146,47 +133,40 @@ async def lock_university(
     Locking a university unlocks application guidance for it.
     User must have at least one locked university to access Stage 4.
     """
-    shortlist = get_user_shortlist(user.user_id)
-    
-    for item in shortlist:
-        if (item.university.name.lower() == request.university_name.lower() and
-            item.university.country.lower() == request.country.lower()):
-            item.is_locked = True
-            return item
-    
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="University not found in shortlist. Add it first."
+    result = await lock_university(
+        db, user.user_id, request.university_name, request.country
     )
+    
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="University not found in shortlist. Add it first."
+        )
+    
+    return result
 
 
 @router.delete("/shortlist/{university_name}")
-async def remove_from_shortlist(
+async def remove_from_shortlist_endpoint(
     university_name: str,
-    user: ClerkUser = Depends(get_current_user)
+    user: ClerkUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Remove a university from the shortlist.
     
     Cannot remove locked universities without explicit unlock.
     """
-    if user.user_id not in _shortlist_store:
+    try:
+        removed = await remove_from_shortlist(db, user.user_id, university_name)
+        if not removed:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="University not found in shortlist"
+            )
+        return {"message": "University removed from shortlist"}
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Shortlist is empty"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
         )
-    
-    for i, item in enumerate(_shortlist_store[user.user_id]):
-        if item.university.name.lower() == university_name.lower():
-            if item.is_locked:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Cannot remove locked university. Unlock first."
-                )
-            _shortlist_store[user.user_id].pop(i)
-            return {"message": "University removed from shortlist"}
-    
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="University not found in shortlist"
-    )

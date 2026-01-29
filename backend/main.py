@@ -12,6 +12,9 @@ from config import get_settings
 from routers import user, onboarding, counsellor, universities
 
 
+from database import init_db, close_db
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
@@ -19,9 +22,19 @@ async def lifespan(app: FastAPI):
     print("🚀 SentinelAI Backend starting...")
     settings = get_settings()
     print(f"📡 Server running on {settings.host}:{settings.port}")
+    
+    # Initialize database
+    try:
+        await init_db()
+        print("✅ Database initialized successfully")
+    except Exception as e:
+        print(f"⚠️  Database initialization skipped: {e}")
+    
     yield
+    
     # Shutdown
     print("👋 SentinelAI Backend shutting down...")
+    await close_db()
 
 
 app = FastAPI(

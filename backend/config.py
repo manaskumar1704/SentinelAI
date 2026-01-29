@@ -17,9 +17,18 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     
-    # Clerk Authentication
-    clerk_publishable_key: str = ""
-    clerk_secret_key: str = ""
+    # Supabase Configuration
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+    supabase_service_role_key: str = ""
+    supabase_jwt_secret: str = ""
+    
+    # Supabase Database Connection
+    supabase_db_host: str = ""
+    supabase_db_port: int = 5432
+    supabase_db_name: str = "postgres"
+    supabase_db_user: str = "postgres"
+    supabase_db_password: str = ""
     
     # Groq AI
     groq_api_key: str = ""

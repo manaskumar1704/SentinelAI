@@ -1,86 +1,73 @@
 """
-Clerk Authentication Middleware
+Supabase Authentication Middleware
 
-Verifies JWT tokens from Clerk and extracts user information.
+Verifies JWT tokens from Supabase Auth and extracts user information.
 """
 
-import httpx
+import jwt
 from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
 
 from config import get_settings
-from models.user import ClerkUser
+from models.user import ClerkUser  # Renamed internally but keeping class name for compatibility
 
 
 security = HTTPBearer(auto_error=False)
 
-# Cache for Clerk JWKS
-_jwks_cache: Optional[dict] = None
 
-
-async def get_clerk_jwks() -> dict:
-    """Fetch Clerk's JWKS (JSON Web Key Set) for token verification."""
-    global _jwks_cache
+def verify_supabase_token(token: str) -> dict:
+    """
+    Verify a Supabase JWT token.
     
-    if _jwks_cache is not None:
-        return _jwks_cache
-    
+    Validates the token signature using the JWT secret and extracts user claims.
+    """
     settings = get_settings()
     
-    # Clerk's JWKS endpoint - derive from publishable key
-    # Format: pk_test_xxx or pk_live_xxx
-    # The frontend domain is encoded in the key after the prefix
-    pk = settings.clerk_publishable_key
-    if not pk:
+    if not settings.supabase_jwt_secret:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Clerk publishable key not configured"
+            detail="Supabase JWT secret not configured"
         )
     
-    # For development, we'll use a simplified approach
-    # In production, fetch from Clerk's JWKS endpoint
-    async with httpx.AsyncClient() as client:
-        try:
-            # Clerk JWKS endpoint pattern
-            # We need the frontend clerk domain from the publishable key
-            # For now, return empty and handle verification differently
-            _jwks_cache = {"keys": []}
-            return _jwks_cache
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to fetch Clerk JWKS: {str(e)}"
-            )
-
-
-async def verify_clerk_token(token: str) -> dict:
-    """
-    Verify a Clerk JWT token.
-    
-    In production, this would verify against Clerk's JWKS.
-    For development, we extract claims without full verification.
-    """
     try:
-        # Decode without verification for development
-        # In production, use proper JWKS verification
-        unverified_claims = jwt.get_unverified_claims(token)
+        # Decode and verify the JWT with the Supabase JWT secret
+        payload = jwt.decode(
+            token,
+            settings.supabase_jwt_secret,
+            algorithms=["HS256"],
+            audience="authenticated",
+        )
         
-        # Extract user ID from 'sub' claim
-        user_id = unverified_claims.get("sub")
+        # Extract user ID from 'sub' claim (standard JWT claim)
+        user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token: missing user ID"
             )
         
+        # Extract user metadata
+        user_metadata = payload.get("user_metadata", {})
+        
         return {
             "user_id": user_id,
-            "email": unverified_claims.get("email"),
-            "full_name": unverified_claims.get("name"),
+            "email": payload.get("email"),
+            "full_name": user_metadata.get("full_name") or user_metadata.get("name"),
+            "role": payload.get("role", "authenticated"),
         }
-    except JWTError as e:
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired"
+        )
+    except jwt.InvalidAudienceError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token audience"
+        )
+    except jwt.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid token: {str(e)}"
@@ -106,7 +93,7 @@ async def get_current_user(
         )
     
     token = credentials.credentials
-    claims = await verify_clerk_token(token)
+    claims = verify_supabase_token(token)
     
     return ClerkUser(
         user_id=claims["user_id"],
@@ -128,7 +115,7 @@ async def get_optional_user(
     
     try:
         token = credentials.credentials
-        claims = await verify_clerk_token(token)
+        claims = verify_supabase_token(token)
         return ClerkUser(
             user_id=claims["user_id"],
             email=claims.get("email"),

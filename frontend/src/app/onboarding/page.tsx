@@ -104,7 +104,7 @@ export default function OnboardingPage() {
             setIsSubmitting(true);
             const token = await getToken();
 
-            const response = await fetch("http://localhost:8000/api/onboarding", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/onboarding`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -135,8 +135,8 @@ export default function OnboardingPage() {
                                         key={level}
                                         onClick={() => updateField("academic_background", "current_education_level", level.toLowerCase().replace(" ", "_"))}
                                         className={cn(
-                                            "cursor-pointer rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4 text-center transition-all hover:border-indigo-500/30",
-                                            formData.academic_background.current_education_level === level.toLowerCase().replace(" ", "_") && "border-indigo-500 bg-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                                            "cursor-pointer rounded-xl border border-primary/10 bg-primary/5 p-4 text-center transition-all hover:border-primary/30",
+                                            formData.academic_background.current_education_level === level.toLowerCase().replace(" ", "_") && "border-primary bg-primary/20 shadow-[0_0_15px_rgba(253,224,71,0.3)] text-primary-foreground font-semibold"
                                         )}
                                     >
                                         {level}
@@ -152,7 +152,7 @@ export default function OnboardingPage() {
                                     value={formData.academic_background.degree_major}
                                     onChange={(e) => updateField("academic_background", "degree_major", e.target.value)}
                                     placeholder="e.g. Computer Science"
-                                    className="bg-white/5 border-white/10"
+                                    className="bg-white/5 border-white/10 focus-visible:ring-primary"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -161,7 +161,7 @@ export default function OnboardingPage() {
                                     type="number"
                                     value={formData.academic_background.graduation_year}
                                     onChange={(e) => updateField("academic_background", "graduation_year", parseInt(e.target.value))}
-                                    className="bg-white/5 border-white/10"
+                                    className="bg-white/5 border-white/10 focus-visible:ring-primary"
                                 />
                             </div>
                         </div>
@@ -174,7 +174,7 @@ export default function OnboardingPage() {
                                 value={formData.academic_background.gpa || ""}
                                 onChange={(e) => updateField("academic_background", "gpa", parseFloat(e.target.value))}
                                 placeholder="e.g. 3.8 or 85"
-                                className="bg-white/5 border-white/10"
+                                className="bg-white/5 border-white/10 focus-visible:ring-primary"
                             />
                         </div>
                     </div>
@@ -191,8 +191,8 @@ export default function OnboardingPage() {
                                         key={degree}
                                         onClick={() => updateField("study_goal", "intended_degree", degree.toLowerCase())}
                                         className={cn(
-                                            "cursor-pointer rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4 text-center transition-all hover:border-indigo-500/30",
-                                            formData.study_goal.intended_degree === degree.toLowerCase() && "border-indigo-500 bg-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                                            "cursor-pointer rounded-xl border border-primary/10 bg-primary/5 p-4 text-center transition-all hover:border-primary/30",
+                                            formData.study_goal.intended_degree === degree.toLowerCase() && "border-primary bg-primary/20 shadow-[0_0_15px_rgba(253,224,71,0.3)] text-primary-foreground font-semibold"
                                         )}
                                     >
                                         {degree}
@@ -208,7 +208,7 @@ export default function OnboardingPage() {
                                     value={formData.study_goal.field_of_study}
                                     onChange={(e) => updateField("study_goal", "field_of_study", e.target.value)}
                                     placeholder="e.g. Data Science"
-                                    className="bg-white/5 border-white/10"
+                                    className="bg-white/5 border-white/10 focus-visible:ring-primary"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -217,7 +217,7 @@ export default function OnboardingPage() {
                                     type="number"
                                     value={formData.study_goal.target_intake_year}
                                     onChange={(e) => updateField("study_goal", "target_intake_year", parseInt(e.target.value))}
-                                    className="bg-white/5 border-white/10"
+                                    className="bg-white/5 border-white/10 focus-visible:ring-primary"
                                 />
                             </div>
                         </div>
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
                                             className={cn(
                                                 "cursor-pointer rounded-full px-4 py-2 text-sm border transition-all",
                                                 isSelected
-                                                    ? "border-indigo-500 bg-indigo-500/20 text-indigo-200"
+                                                    ? "border-primary bg-primary/20 text-primary-foreground font-medium"
                                                     : "border-white/10 bg-white/5 hover:bg-white/10"
                                             )}
                                         >
@@ -270,12 +270,12 @@ export default function OnboardingPage() {
                                         key={budget.value}
                                         onClick={() => updateField("budget", "budget_range_per_year", budget.value)}
                                         className={cn(
-                                            "cursor-pointer rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4 flex items-center justify-between transition-all hover:border-indigo-500/30",
-                                            formData.budget.budget_range_per_year === budget.value && "border-indigo-500 bg-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                                            "cursor-pointer rounded-xl border border-primary/10 bg-primary/5 p-4 flex items-center justify-between transition-all hover:border-primary/30",
+                                            formData.budget.budget_range_per_year === budget.value && "border-primary bg-primary/20 shadow-[0_0_15px_rgba(253,224,71,0.3)] text-primary-foreground font-semibold"
                                         )}
                                     >
                                         <span>{budget.label}</span>
-                                        {formData.budget.budget_range_per_year === budget.value && <Check className="h-4 w-4 text-indigo-400" />}
+                                        {formData.budget.budget_range_per_year === budget.value && <Check className="h-4 w-4 text-primary-foreground" />}
                                     </div>
                                 ))}
                             </div>
@@ -293,8 +293,8 @@ export default function OnboardingPage() {
                                         key={plan.value}
                                         onClick={() => updateField("budget", "funding_plan", plan.value)}
                                         className={cn(
-                                            "cursor-pointer rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4 text-center text-sm transition-all hover:border-indigo-500/30",
-                                            formData.budget.funding_plan === plan.value && "border-indigo-500 bg-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                                            "cursor-pointer rounded-xl border border-primary/10 bg-primary/5 p-4 text-center text-sm transition-all hover:border-primary/30",
+                                            formData.budget.funding_plan === plan.value && "border-primary bg-primary/20 shadow-[0_0_15px_rgba(253,224,71,0.3)] text-primary-foreground font-semibold"
                                         )}
                                     >
                                         {plan.label}
@@ -384,12 +384,12 @@ export default function OnboardingPage() {
     const CurrentIcon = STEPS[step - 1].icon;
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950 via-background to-background">
+        <div className="min-h-screen w-full flex items-center justify-center p-4 bg-background font-sans">
 
             {/* Background blobs similar to landing page */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-                <div className="absolute top-[-20%] left-[10%] w-[50vw] h-[50vw] bg-indigo-500/5 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-20%] right-[10%] w-[40vw] h-[40vw] bg-purple-500/5 rounded-full blur-[100px]" />
+                <div className="absolute top-[-20%] left-[10%] w-[50vw] h-[50vw] bg-primary/5 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-20%] right-[10%] w-[40vw] h-[40vw] bg-secondary/5 rounded-full blur-[100px]" />
             </div>
 
             <motion.div
@@ -399,25 +399,25 @@ export default function OnboardingPage() {
             >
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Build Your Profile</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 font-heading">Build Your Profile</h1>
                         <p className="text-muted-foreground">Step {step} of 4: {STEPS[step - 1].title}</p>
                     </div>
-                    <div className="h-12 w-12 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                        <CurrentIcon className="h-6 w-6 text-indigo-400" />
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                        <CurrentIcon className="h-6 w-6 text-primary" />
                     </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="h-2 w-full bg-white/5 rounded-full mb-8 overflow-hidden">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                        className="h-full bg-gradient-to-r from-primary to-secondary"
                         initial={{ width: 0 }}
                         animate={{ width: `${(step / STEPS.length) * 100}%` }}
                         transition={{ type: "spring", stiffness: 50 }}
                     />
                 </div>
 
-                <div className="relative rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-8 shadow-2xl">
+                <div className="relative rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-8 shadow-2xl glass-card">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={step}
@@ -435,7 +435,7 @@ export default function OnboardingPage() {
                             variant="ghost"
                             onClick={prevStep}
                             disabled={step === 1}
-                            className={cn("text-muted-foreground hover:text-white", step === 1 && "invisible")}
+                            className={cn("text-muted-foreground hover:text-foreground hover:bg-white/5", step === 1 && "invisible")}
                         >
                             <ChevronLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
@@ -443,7 +443,7 @@ export default function OnboardingPage() {
                         <Button
                             onClick={nextStep}
                             disabled={isSubmitting}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white min-w-[120px]"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[120px]"
                         >
                             {isSubmitting ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />

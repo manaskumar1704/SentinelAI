@@ -118,7 +118,7 @@ export default function CounsellorPage() {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col h-[calc(100vh-64px)] bg-background"
+            className="flex flex-col h-[calc(100dvh-64px)] bg-background"
         >
             <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                 <div className="mx-auto max-w-3xl space-y-6">
@@ -136,8 +136,8 @@ export default function CounsellorPage() {
                                 <div className={cn(
                                     "flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border shadow",
                                     message.role === "user"
-                                        ? "bg-indigo-600 border-indigo-600 text-white"
-                                        : "bg-white/10 border-white/20 text-indigo-400"
+                                        ? "bg-primary border-primary text-primary-foreground"
+                                        : "bg-white/10 border-white/20 text-primary"
                                 )}>
                                     {message.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                                 </div>
@@ -145,7 +145,7 @@ export default function CounsellorPage() {
                                 <div className={cn(
                                     "group relative flex-1 space-y-2 overflow-hidden px-4 py-3 shadow-sm",
                                     message.role === "user"
-                                        ? "rounded-2xl rounded-tr-none bg-indigo-600 text-white"
+                                        ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground"
                                         : "rounded-2xl rounded-tl-none border border-white/10 bg-white/5"
                                 )}>
                                     <div className="prose prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm md:text-base">
@@ -161,12 +161,12 @@ export default function CounsellorPage() {
 
             <div className="border-t border-white/10 bg-background p-4 md:p-6">
                 <div className="mx-auto max-w-3xl">
-                    <form onSubmit={handleSubmit} className="relative flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 shadow-inner focus-within:ring-1 focus-within:ring-indigo-500">
+                    <form onSubmit={handleSubmit} className="relative flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 shadow-inner focus-within:ring-1 focus-within:ring-primary">
                         <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground hover:text-indigo-400"
+                            className="text-muted-foreground hover:text-primary"
                         >
                             <Sparkles className="h-5 w-5" />
                         </Button>
@@ -180,7 +180,7 @@ export default function CounsellorPage() {
                             type="submit"
                             size="icon"
                             disabled={loading || !input.trim()}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
                         >
                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         </Button>
@@ -193,3 +193,4 @@ export default function CounsellorPage() {
         </motion.div>
     );
 }
+

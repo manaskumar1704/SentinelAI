@@ -49,8 +49,8 @@ export default function UniversitiesPage() {
 
                 setLoading(true);
                 const [recsRes, shortRes] = await Promise.all([
-                    fetch("http://localhost:8000/api/universities/recommendations", { headers: { Authorization: `Bearer ${token}` } }),
-                    fetch("http://localhost:8000/api/universities/shortlist", { headers: { Authorization: `Bearer ${token}` } })
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/universities/recommendations`, { headers: { Authorization: `Bearer ${token}` } }),
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/universities/shortlist`, { headers: { Authorization: `Bearer ${token}` } })
                 ]);
 
                 if (recsRes.ok) setRecommendations(await recsRes.json());
@@ -67,7 +67,7 @@ export default function UniversitiesPage() {
     const addToShortlist = async (uni: University, category: string) => {
         try {
             const token = await getToken();
-            await fetch("http://localhost:8000/api/universities/shortlist", {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/universities/shortlist`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -89,7 +89,7 @@ export default function UniversitiesPage() {
     const lockUniversity = async (name: string, country: string) => {
         try {
             const token = await getToken();
-            await fetch("http://localhost:8000/api/universities/lock", {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/universities/lock`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -98,7 +98,7 @@ export default function UniversitiesPage() {
                 body: JSON.stringify({ university_name: name, country })
             });
             // Refresh
-            const shortRes = await fetch("http://localhost:8000/api/universities/shortlist", { headers: { Authorization: `Bearer ${token}` } });
+            const shortRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/universities/shortlist`, { headers: { Authorization: `Bearer ${token}` } });
             if (shortRes.ok) setShortlist(await shortRes.json());
         } catch (err) {
             console.error(err);
@@ -111,7 +111,7 @@ export default function UniversitiesPage() {
 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Universities</h1>
+                        <h1 className="text-3xl font-bold text-foreground font-heading">Universities</h1>
                         <p className="text-muted-foreground">Discover and manage your target schools.</p>
                     </div>
 
@@ -120,7 +120,7 @@ export default function UniversitiesPage() {
                             onClick={() => setActiveTab("recommendations")}
                             className={cn(
                                 "px-6 py-2 rounded-full text-sm font-medium transition-all",
-                                activeTab === "recommendations" ? "bg-indigo-600 text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                                activeTab === "recommendations" ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             Recommendations
@@ -129,7 +129,7 @@ export default function UniversitiesPage() {
                             onClick={() => setActiveTab("shortlist")}
                             className={cn(
                                 "px-6 py-2 rounded-full text-sm font-medium transition-all",
-                                activeTab === "shortlist" ? "bg-indigo-600 text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                                activeTab === "shortlist" ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             Shortlist ({shortlist.length})
@@ -138,7 +138,7 @@ export default function UniversitiesPage() {
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" /></div>
+                    <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
                 ) : activeTab === "recommendations" ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {recommendations.map((rec, idx) => (
@@ -147,14 +147,14 @@ export default function UniversitiesPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-indigo-500/30 hover:bg-white/10 transition-all"
+                                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-primary/30 hover:bg-white/10 transition-all font-sans"
                             >
                                 <div>
                                     <div className="flex justify-between items-start mb-4">
                                         <Badge className={cn(
                                             "uppercase tracking-wider",
                                             rec.category === "dream" ? "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30" :
-                                                rec.category === "target" ? "bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30" :
+                                                rec.category === "target" ? "bg-primary/20 text-primary hover:bg-primary/30" :
                                                     "bg-green-500/20 text-green-300 hover:bg-green-500/30"
                                         )}>
                                             {rec.category}
@@ -196,7 +196,7 @@ export default function UniversitiesPage() {
 
                                 <Button
                                     onClick={() => addToShortlist(rec.university, rec.category)}
-                                    className="w-full gap-2 bg-white/10 hover:bg-indigo-600 hover:text-white transition-colors"
+                                    className="w-full gap-2 bg-white/10 hover:bg-primary hover:text-primary-foreground transition-colors text-foreground"
                                 >
                                     <Bookmark className="h-4 w-4" /> Shortlist
                                 </Button>
@@ -218,7 +218,7 @@ export default function UniversitiesPage() {
                                     "relative flex flex-col justify-between overflow-hidden rounded-2xl border p-6 transition-all",
                                     item.is_locked
                                         ? "border-yellow-500/50 bg-yellow-500/10 shadow-[0_0_20px_rgba(234,179,8,0.1)]"
-                                        : "border-white/10 bg-white/5 hover:border-indigo-500/30"
+                                        : "border-white/10 bg-white/5 hover:border-primary/30"
                                 )}
                             >
                                 <div>
@@ -264,3 +264,4 @@ export default function UniversitiesPage() {
         </div>
     );
 }
+

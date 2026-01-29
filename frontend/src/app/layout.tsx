@@ -7,17 +7,17 @@ import {
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/Navbar'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const outfit = Outfit({
+  variable: '--font-outfit',
   subsets: ['latin'],
 })
 
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className="dark">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}>
+        <body className={`${inter.variable} ${outfit.variable} antialiased min-h-screen bg-background text-foreground font-sans`}>
           <Navbar />
           {/* Landing page header only shows when signed out or on landing page - handled by Navbar logic or specific page layouts, 
               but here we kept the original header logic for the landing page auth buttons if needed, 
@@ -48,12 +48,12 @@ export default function RootLayout({
             <header className="absolute top-0 right-0 z-50 p-6">
               <div className="flex gap-4">
                 <SignInButton mode="modal">
-                  <button className="text-sm font-medium hover:text-indigo-400 transition-colors">
+                  <button className="text-sm font-medium hover:text-primary transition-colors">
                     Sign In
                   </button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-medium text-sm h-10 px-5 transition-all shadow-lg shadow-indigo-500/20">
+                  <button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-medium text-sm h-10 px-5 transition-all shadow-lg shadow-primary/20">
                     Sign Up
                   </button>
                 </SignUpButton>
@@ -67,3 +67,4 @@ export default function RootLayout({
     </ClerkProvider>
   )
 }
+

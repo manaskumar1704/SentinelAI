@@ -34,7 +34,7 @@ export default function GuidancePage() {
         const fetchLocked = async () => {
             try {
                 const token = await getToken();
-                const res = await fetch("http://localhost:8000/api/universities/shortlist", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/universities/shortlist`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -53,9 +53,9 @@ export default function GuidancePage() {
     if (lockedUnis.length === 0) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
-                <h2 className="text-2xl font-bold mb-4">No Universities Locked</h2>
+                <h2 className="text-2xl font-bold mb-4 font-heading">No Universities Locked</h2>
                 <p className="text-muted-foreground mb-8">Lock a university from your shortlist to unlock detailed application guidance.</p>
-                <Button asChild>
+                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
                     <a href="/universities">Go to Universities</a>
                 </Button>
             </div>
@@ -72,7 +72,7 @@ export default function GuidancePage() {
 
                 {/* Sidebar: Locked Universities */}
                 <div className="space-y-4">
-                    <h2 className="text-xl font-bold mb-4">Your Applications</h2>
+                    <h2 className="text-xl font-bold mb-4 font-heading">Your Applications</h2>
                     {lockedUnis.map((uni) => (
                         <div
                             key={uni.university.name}
@@ -80,7 +80,7 @@ export default function GuidancePage() {
                             className={cn(
                                 "cursor-pointer p-4 rounded-xl border transition-all",
                                 selectedUni === uni.university.name
-                                    ? "border-indigo-500 bg-indigo-500/10 shadow-md"
+                                    ? "border-primary bg-primary/10 shadow-md"
                                     : "border-white/10 bg-white/5 hover:bg-white/10"
                             )}
                         >
@@ -92,21 +92,21 @@ export default function GuidancePage() {
 
                 {/* Main Content */}
                 <div className="lg:col-span-3 space-y-8">
-                    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-8">
+                    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-primary/10 to-secondary/10 p-8">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h1 className="text-3xl font-bold">{selectedUni}</h1>
-                                <p className="text-indigo-300">Fall 2027 Intake</p>
+                                <h1 className="text-3xl font-bold font-heading">{selectedUni}</h1>
+                                <p className="text-muted-foreground">Fall 2027 Intake</p>
                             </div>
                             <div className="text-right">
-                                <div className="text-2xl font-bold">25%</div>
+                                <div className="text-2xl font-bold text-primary">25%</div>
                                 <div className="text-xs uppercase tracking-wide text-muted-foreground">Complete</div>
                             </div>
                         </div>
 
                         {/* Progress Bar */}
                         <div className="h-2 w-full bg-black/20 rounded-full overflow-hidden">
-                            <div className="h-full w-1/4 bg-indigo-500" />
+                            <div className="h-full w-1/4 bg-primary" />
                         </div>
                     </div>
 
@@ -119,12 +119,12 @@ export default function GuidancePage() {
                                 transition={{ delay: idx * 0.1 }}
                             >
                                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs">{idx + 1}</span>
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary text-xs">{idx + 1}</span>
                                     {step.title}
                                 </h3>
                                 <div className="space-y-3">
                                     {step.tasks.map((task) => (
-                                        <div key={task.id} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 hover:border-white/10 transition-colors">
+                                        <div key={task.id} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 hover:border-primary/20 transition-colors">
                                             <div className="flex items-center gap-3">
                                                 {task.status === "completed"
                                                     ? <CheckCircle2 className="h-5 w-5 text-green-500" />

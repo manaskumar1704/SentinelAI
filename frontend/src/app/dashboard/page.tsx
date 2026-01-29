@@ -83,7 +83,7 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
         );
     }
@@ -104,11 +104,11 @@ export default function DashboardPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex flex-col gap-2"
                 >
-                    <div className="flex items-center gap-2 text-indigo-400">
+                    <div className="flex items-center gap-2 text-primary">
                         <Sparkles className="h-5 w-5" />
                         <span className="text-sm font-medium uppercase tracking-wider">Control Center</span>
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                    <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 font-heading">
                         Welcome back, {profile?.full_name?.split(" ")[0] || "Student"}.
                     </h1>
                     <p className="text-muted-foreground">Here is what you need to focus on today.</p>
@@ -128,18 +128,18 @@ export default function DashboardPage() {
                             <div
                                 key={s.number}
                                 className={`relative overflow-hidden rounded-xl border p-4 transition-all ${isActive
-                                    ? "border-indigo-500/50 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+                                    ? "border-primary/50 bg-primary/10 shadow-[0_0_15px_var(--primary)]"
                                     : isPast
                                         ? "border-green-500/30 bg-green-500/5 opacity-60"
                                         : "border-white/5 bg-white/5 opacity-40"
                                     }`}
                             >
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className={`text-xs font-bold uppercase ${isActive ? "text-indigo-400" : ""}`}>
+                                    <span className={`text-xs font-bold uppercase ${isActive ? "text-primary" : ""}`}>
                                         Stage 0{s.number}
                                     </span>
                                     {isPast && <CheckCircle className="h-4 w-4 text-green-500" />}
-                                    {isActive && <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />}
+                                    {isActive && <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />}
                                 </div>
                                 <h3 className="font-semibold">{s.name}</h3>
                             </div>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-6 backdrop-blur-sm"
+                            className="rounded-2xl border border-white/10 bg-gradient-to-br from-primary/10 to-purple-900/10 p-6 backdrop-blur-sm"
                         >
                             <div className="flex items-start justify-between">
                                 <div>
@@ -165,12 +165,12 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-4xl font-bold text-indigo-400">72%</div>
+                                    <div className="text-4xl font-bold text-primary">72%</div>
                                     <div className="text-xs text-muted-foreground uppercase tracking-wide">Ready</div>
                                 </div>
                             </div>
                             <div className="mt-6 h-2 w-full rounded-full bg-white/5 overflow-hidden">
-                                <div className="h-full w-[72%] bg-gradient-to-r from-indigo-500 to-purple-500" />
+                                <div className="h-full w-[72%] bg-gradient-to-r from-primary to-purple-500" />
                             </div>
                         </motion.div>
 
@@ -181,17 +181,17 @@ export default function DashboardPage() {
                             transition={{ delay: 0.3 }}
                         >
                             <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                                <CheckCircle className="h-5 w-5 text-indigo-400" />
+                                <CheckCircle className="h-5 w-5 text-primary" />
                                 Action Items
                             </h3>
                             <div className="space-y-3">
                                 {MOCK_TASKS.map((task, idx) => (
                                     <div
                                         key={task.id}
-                                        className="group flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-4 transition-colors hover:border-indigo-500/30 hover:bg-white/10"
+                                        className="group flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-4 transition-colors hover:border-primary/30 hover:bg-white/10"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors ${task.completed ? "bg-green-500/20 border-green-500/50" : "border-white/20 group-hover:border-indigo-400"
+                                            <div className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors ${task.completed ? "bg-green-500/20 border-green-500/50" : "border-white/20 group-hover:border-primary"
                                                 }`}>
                                                 {task.completed && <CheckCircle className="h-3 w-3 text-green-500" />}
                                             </div>
@@ -200,7 +200,7 @@ export default function DashboardPage() {
                                             </span>
                                         </div>
                                         {!task.completed && (
-                                            <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary">
                                                 Start
                                             </Button>
                                         )}
@@ -222,12 +222,12 @@ export default function DashboardPage() {
                             <h3 className="font-semibold mb-4">Quick Links</h3>
                             <div className="space-y-2">
                                 <Link href="/universities">
-                                    <Button variant="outline" className="w-full justify-start h-12 border-white/10 hover:bg-indigo-500/10 hover:text-indigo-400">
+                                    <Button variant="outline" className="w-full justify-start h-12 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/20">
                                         <ArrowRight className="mr-2 h-4 w-4" /> Browse Universities
                                     </Button>
                                 </Link>
                                 <Link href="/counsellor">
-                                    <Button variant="outline" className="w-full justify-start h-12 border-white/10 hover:bg-indigo-500/10 hover:text-indigo-400">
+                                    <Button variant="outline" className="w-full justify-start h-12 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/20">
                                         <ArrowRight className="mr-2 h-4 w-4" /> Ask Counsellor
                                     </Button>
                                 </Link>
@@ -250,3 +250,4 @@ export default function DashboardPage() {
         </motion.div>
     );
 }
+

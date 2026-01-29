@@ -27,10 +27,10 @@ export function Navbar() {
         >
             <div className="container flex h-16 items-center px-4 md:px-6">
                 <Link href="/dashboard" className="mr-8 flex items-center space-x-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-                        <Sparkles className="h-4 w-4 text-white" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+                        <Sparkles className="h-4 w-4 text-primary" />
                     </div>
-                    <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500">
+                    <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-amber-300 font-heading">
                         SentinelAI
                     </span>
                 </Link>
@@ -45,11 +45,11 @@ export function Navbar() {
                                 className={cn(
                                     "group flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
                                     isActive
-                                        ? "bg-indigo-500/10 text-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.2)]"
+                                        ? "bg-primary/20 text-primary shadow-[0_0_20px_rgba(253,224,71,0.2)]"
                                         : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                                 )}
                             >
-                                <item.icon className={cn("mr-2 h-4 w-4 transition-transform group-hover:scale-110", isActive && "text-indigo-500")} />
+                                <item.icon className={cn("mr-2 h-4 w-4 transition-transform group-hover:scale-110", isActive && "text-primary")} />
                                 <span className="hidden sm:inline-block">{item.label}</span>
                             </Link>
                         );
@@ -61,7 +61,7 @@ export function Navbar() {
                         href="/profile"
                         className={cn(
                             "p-2 rounded-full transition-colors hover:bg-white/10",
-                            pathname === "/profile" ? "text-indigo-500" : "text-muted-foreground"
+                            pathname === "/profile" ? "text-primary" : "text-muted-foreground"
                         )}
                     >
                         <User className="h-5 w-5" />
@@ -71,7 +71,7 @@ export function Navbar() {
                         afterSignOutUrl="/"
                         appearance={{
                             elements: {
-                                avatarBox: "h-9 w-9 ring-2 ring-indigo-500/20 hover:ring-indigo-500/50 transition-all"
+                                avatarBox: "h-9 w-9 ring-2 ring-primary/20 hover:ring-primary/50 transition-all"
                             }
                         }}
                     />

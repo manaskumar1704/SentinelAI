@@ -35,7 +35,7 @@ export default function ProfilePage() {
         const fetchProfile = async () => {
             try {
                 const token = await getToken();
-                const res = await fetch("http://localhost:8000/api/onboarding", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/onboarding`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -56,7 +56,7 @@ export default function ProfilePage() {
         setSaving(true);
         try {
             const token = await getToken();
-            await fetch("http://localhost:8000/api/onboarding", {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/onboarding`, {
                 method: "POST", // Using POST to overwrite/update
                 headers: {
                     "Content-Type": "application/json",
@@ -82,7 +82,7 @@ export default function ProfilePage() {
         });
     };
 
-    if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin h-8 w-8 text-indigo-500" /></div>;
+    if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
     if (!data) return <div className="text-center py-20">Please complete onboarding first.</div>;
 
     return (
@@ -95,10 +95,10 @@ export default function ProfilePage() {
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Profile</h1>
+                        <h1 className="text-3xl font-bold text-foreground font-heading">Profile</h1>
                         <p className="text-muted-foreground">Manage your study abroad preferences.</p>
                     </div>
-                    <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700">
+                    <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                         {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
                         Save Changes
                     </Button>
@@ -112,7 +112,7 @@ export default function ProfilePage() {
                                 className="flex w-full items-center justify-between p-6 transition-colors hover:bg-white/5"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                                         <section.icon className="h-5 w-5" />
                                     </div>
                                     <span className="font-semibold text-lg">{section.title}</span>
@@ -148,7 +148,7 @@ export default function ProfilePage() {
                                                                 const newVal = Array.isArray(val) ? e.target.value.split(", ") : e.target.value;
                                                                 updateField(section.id, key, newVal);
                                                             }}
-                                                            className="bg-black/20 border-white/10"
+                                                            className="bg-black/20 border-white/10 focus-visible:ring-primary"
                                                         />
                                                     </div>
                                                 );

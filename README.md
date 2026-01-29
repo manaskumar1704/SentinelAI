@@ -1,27 +1,29 @@
 # 🛡️ SentinelAI
 
-SentinelAI is a state-of-the-art, AI-powered study-abroad counselling platform designed to guide students through the complexities of international education. By leveraging advanced LLMs and a deterministic execution architecture, SentinelAI provides personalized recommendations, application guidance, and a persistent AI counsellor.
+SentinelAI is a state-of-the-art, AI-powered study-abroad counselling platform designed to guide students through the complexities of international education. By leveraging advanced LLMs (Groq) and a deterministic 3-layer architecture, SentinelAI provides personalized recommendations, application guidance, and a persistent AI counsellor.
 
 ---
 
 ## 🚀 Key Features
 
-- **🧠 Smart Onboarding**: Mandatory profiling to understand academic background, study goals, budget, and readiness.
-- **📊 Interactive Dashboard**: A central hub to track profile strength, current stages, and AI-generated to-do lists.
-- **🤖 AI Counsellor (Core)**: A persistent AI agent powered by Groq that recommends universities (Dream/Target/Safe), explains fit/risks, and performs actions on behalf of the user.
-- **🎓 University Locking**: A strategic flow where students shortlist and lock-in target universities to unlock specific application guidance.
-- **✅ Application Guidance**: Automated generation of timelines, document checklists, and task tracking for SOPs and exams.
+- **🧠 Smart Onboarding**: Data-driven profiling to understand academic background, study goals, budget, and readiness. Supports both manual forms and conversational AI flows.
+- **📊 Interactive Dashboard**: A central hub to track profile strength, current stages, and AI-generated to-do lists with real-time updates.
+- **🤖 AI Counsellor (Core)**: A persistent AI agent powered by Groq and a custom RAG pipeline that recommends universities, explains fit/risks, and performs actions on behalf of the user.
+- **🎓 University Classification**: Intelligent grouping of universities into **Dream**, **Target**, and **Safe** categories based on user profile and acceptance probability.
+- **🎓 University Locking**: A strategic flow where students lock-in target universities to unlock specific, tailored application guidance.
+- **✅ Application Guidance**: Automated generation of timelines, document checklists, and task tracking for SOPs, transcripts, and exams.
+- **✨ Premium UX**: Modern, responsive interface with glassmorphism aesthetics and smooth Framer Motion transitions.
 
 ---
 
 ## 🏗️ Project Structure
 
-SentinelAI is organized as a monorepo with a 3-layer architecture for maximum reliability.
+SentinelAI is organized as a monorepo with a 3-layer architecture for maximum reliability and scalability.
 
-- **/frontend**: A polished Next.js application built with TypeScript and Bun. Uses Clerk for authentication and provides a premium UI/UX.
-- **/backend**: A high-performance FastAPI service that handles core logic, AI orchestration, and data management. Uses `uv` for dependency management.
-- **/directives**: Contains Standard Operating Procedures (SOPs) in Markdown that define how the AI agent operates.
-- **/execution**: (Located within backend context) Deterministic Python scripts that interface with APIs and databases.
+- **/frontend**: A polished Next.js 15 application built with TypeScript, Bun, and TailwindCSS. Uses Supabase for authentication and Framer Motion for premium animations.
+- **/backend**: A high-performance FastAPI service handling AI orchestration, data management, and business logic. Uses `uv` for dependency management and SQLModel for database interactions.
+- **/directives**: Contains Standard Operating Procedures (SOPs) in Markdown that define how the AI agent and backend modules operate.
+- **AI Engine (within backend)**: A custom-built engine utilizing Groq for fast inference and a RAG pipeline for context-aware counselling.
 
 ---
 
@@ -29,19 +31,21 @@ SentinelAI is organized as a monorepo with a 3-layer architecture for maximum re
 
 ### Frontend
 
-- **Framework**: Next.js 15+ (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **Runtime**: Bun
-- **Authentication**: Clerk
-- **Styling**: Vanilla CSS / Modern UI components
-- **State Management**: React Hooks
+- **Authentication**: Supabase Auth
+- **Animations**: Framer Motion
+- **Styling**: TailwindCSS 4 + Vanilla CSS (Custom Design System)
+- **State Management**: React Hooks & Context
 
 ### Backend
 
 - **Framework**: FastAPI
 - **Language**: Python 3.11+
 - **AI Engine**: Groq (LLM Orchestration)
+- **Database**: Supabase (PostgreSQL)
+- **ORM**: SQLModel (SQLAlchemy + Pydantic)
 - **Dependency Management**: `uv`
-- **Validation**: Pydantic v2
 
 ---
 
@@ -51,14 +55,15 @@ SentinelAI is organized as a monorepo with a 3-layer architecture for maximum re
 
 - **Bun** (for frontend)
 - **Python 3.11+** and **uv** (for backend)
-- **API Keys**: Clerk (Frontend/Backend) and Groq (Backend)
+- **Supabase Account**: For Authentication and PostgreSQL database.
+- **Groq API Key**: For the AI Counsellor features.
 
 ### 2. Backend Setup
 
 ```bash
 cd backend
 uv sync
-# Copy .env.example to .env and fill in your keys
+# Copy .env.example to .env and fill in your keys (Supabase, Groq)
 uv run uvicorn main:app --reload
 ```
 
@@ -67,7 +72,7 @@ uv run uvicorn main:app --reload
 ```bash
 cd frontend
 bun install
-# Copy .env.example to .env.local and fill in your Clerk keys
+# Copy .env.example to .env.local and fill in your Supabase credentials
 bun dev
 ```
 
@@ -75,11 +80,11 @@ bun dev
 
 ## 📜 Architecture: The 3-Layer System
 
-As outlined in `AGENTS.md`, this project follows a strict separation of concerns:
+As outlined in `AGENTS.md`, this project follows a strict separation of concerns to bridge the gap between probabilistic AI and deterministic business logic:
 
-1. **Layer 1: Directive (What to do)** - SOPs in `directives/` define the goals.
-2. **Layer 2: Orchestration (Decision making)** - The AI agent routes requests and handles errors.
-3. **Layer 3: Execution (Doing the work)** - Deterministic scripts in `execution/` handle the actual work.
+1. **Layer 1: Directive (What to do)** - SOPs in `directives/` define the goals and rules.
+2. **Layer 2: Orchestration (Decision making)** - The AI agent and routers handle routing and error management.
+3. **Layer 3: Execution (Doing the work)** - Deterministic services in `backend/services/` handle the actual data processing and API calls.
 
 ---
 

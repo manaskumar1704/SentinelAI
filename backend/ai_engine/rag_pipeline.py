@@ -1,10 +1,14 @@
 """
-RAG Pipeline for University Recommendations
+AI Classification Pipeline for University Recommendations
 
 Uses Llama 3.3 70B via Groq for AI-powered university classification
 and recommendation explainability.
+
+Note: This is Context-Augmented Generation, not Retrieval-Augmented Generation (RAG).
+For small university lists, passing full context is more accurate than vector retrieval.
 """
 
+import asyncio
 import json
 from typing import Optional
 from groq import AsyncGroq
@@ -12,11 +16,17 @@ from groq import AsyncGroq
 from config import get_settings
 from ai_engine.prompts import get_classifier_prompt, get_recommendation_explainer_prompt
 
+# Singleton pattern for AsyncGroq client
+_async_client: AsyncGroq = None
+
 
 def get_async_groq_client() -> AsyncGroq:
-    """Get async Groq client."""
-    settings = get_settings()
-    return AsyncGroq(api_key=settings.groq_api_key)
+    """Get singleton async Groq client (reuses connections)."""
+    global _async_client
+    if _async_client is None:
+        settings = get_settings()
+        _async_client = AsyncGroq(api_key=settings.groq_api_key)
+    return _async_client
 
 
 async def classify_university_with_ai(
@@ -136,31 +146,56 @@ async def batch_classify_universities(
     model: str = "llama-3.3-70b-versatile"
 ) -> list[dict]:
     """
-    Classify multiple universities for a student.
+    Classify multiple universities for a student in parallel.
+    
+    Uses asyncio.gather for parallel execution, significantly improving
+    performance when classifying many universities.
     
     Returns:
         List of classification results with university data included
     """
-    results = []
-    
-    for university in universities:
+    # Create classification tasks for all universities
+    async def classify_single(university: dict) -> dict:
         classification = await classify_university_with_ai(
             student_profile=student_profile,
             university_data=university,
             model=model
         )
-        
-        results.append({
+        return {
             "university": university,
             "classification": classification
-        })
+        }
     
-    return results
+    # Run all classifications in parallel
+    tasks = [classify_single(uni) for uni in universities]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Filter out any failed classifications and log errors
+    valid_results = []
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            # Log error but continue with other results
+            print(f"Classification failed for university {i}: {result}")
+            # Add fallback classification
+            valid_results.append({
+                "university": universities[i],
+                "classification": {
+                    "category": "target",
+                    "confidence": 0.3,
+                    "reasons": ["Classification failed, defaulting to target"],
+                    "risks": ["Unable to perform AI analysis"],
+                    "recommendation": "Please review university details manually."
+                }
+            })
+        else:
+            valid_results.append(result)
+    
+    return valid_results
 
 
-def build_student_profile_for_rag(onboarding_data: Optional[dict]) -> dict:
+def build_student_profile_for_classification(onboarding_data: Optional[dict]) -> dict:
     """
-    Build a structured student profile for RAG classification.
+    Build a structured student profile for AI classification.
     
     Args:
         onboarding_data: Raw onboarding data from database

@@ -10,6 +10,10 @@ import httpx
 from config import get_settings
 from models.university import University, UniversityRecommendation
 from models.onboarding import OnboardingData
+from ai_engine.rag_pipeline import (
+    batch_classify_universities,
+    build_student_profile_for_classification,
+)
 
 
 async def search_universities(
@@ -167,7 +171,10 @@ async def get_recommendations(
     limit: int = 10
 ) -> list[UniversityRecommendation]:
     """
-    Get university recommendations based on user profile.
+    Get AI-powered university recommendations based on user profile.
+    
+    Uses Llama 3.3 70B via Groq to intelligently classify universities
+    as Dream/Target/Safe based on the student's profile.
     
     Args:
         profile: User's onboarding data
@@ -175,7 +182,7 @@ async def get_recommendations(
         limit: Maximum number of recommendations
     
     Returns:
-        List of university recommendations
+        List of university recommendations with AI-generated classifications
     """
     # Get universities for preferred countries
     target_countries = countries or (
@@ -187,17 +194,87 @@ async def get_recommendations(
         universities = await search_universities(country=country)
         all_universities.extend(universities[:20])  # Limit per country
     
-    # Generate recommendations
-    recommendations = []
-    for university in all_universities[:limit]:
-        recommendation = UniversityRecommendation(
-            university=university,
-            category=categorize_university(university, profile),
-            fit_reasons=generate_fit_reasons(university, profile),
-            risks=generate_risks(university, profile),
-            cost_level=estimate_cost_level(university.country),
-            acceptance_chance=calculate_acceptance_chance(university, profile),
-        )
-        recommendations.append(recommendation)
+    # Limit total universities to process
+    universities_to_classify = all_universities[:limit * 2]  # Get more than needed for better selection
     
-    return recommendations
+    # Use AI classification if profile is available
+    if profile:
+        # Build student profile for AI classification
+        student_profile = build_student_profile_for_classification(
+            profile.model_dump() if hasattr(profile, 'model_dump') else profile.__dict__
+        )
+        
+        # Convert universities to dict format for AI
+        university_dicts = [
+            {
+                "name": uni.name,
+                "country": uni.country,
+                "domains": uni.domains,
+                "web_pages": uni.web_pages,
+                "state_province": uni.state_province,
+            }
+            for uni in universities_to_classify
+        ]
+        
+        # Run AI classification in parallel
+        classifications = await batch_classify_universities(
+            student_profile=student_profile,
+            universities=university_dicts
+        )
+        
+        # Build recommendations from AI classifications
+        recommendations = []
+        for result in classifications[:limit]:
+            university_data = result["university"]
+            classification = result["classification"]
+            
+            # Reconstruct University object
+            university = University(
+                name=university_data["name"],
+                country=university_data["country"],
+                alpha_two_code=next(
+                    (u.alpha_two_code for u in universities_to_classify if u.name == university_data["name"]),
+                    ""
+                ),
+                domains=university_data["domains"],
+                web_pages=university_data["web_pages"],
+                state_province=university_data.get("state_province"),
+            )
+            
+            # Map AI confidence to acceptance chance
+            confidence = classification.get("confidence", 0.5)
+            if confidence >= 0.7:
+                acceptance_chance = "high"
+            elif confidence >= 0.4:
+                acceptance_chance = "medium"
+            else:
+                acceptance_chance = "low"
+            
+            recommendation = UniversityRecommendation(
+                university=university,
+                category=classification.get("category", "target"),
+                fit_reasons=classification.get("reasons", []),
+                risks=classification.get("risks", []),
+                cost_level=estimate_cost_level(university.country),
+                acceptance_chance=acceptance_chance,
+            )
+            recommendations.append(recommendation)
+        
+        return recommendations
+    
+    else:
+        # Fallback to simple heuristics if no profile
+        recommendations = []
+        for university in universities_to_classify[:limit]:
+            recommendation = UniversityRecommendation(
+                university=university,
+                category=categorize_university(university, profile),
+                fit_reasons=generate_fit_reasons(university, profile),
+                risks=generate_risks(university, profile),
+                cost_level=estimate_cost_level(university.country),
+                acceptance_chance=calculate_acceptance_chance(university, profile),
+            )
+            recommendations.append(recommendation)
+        
+        return recommendations
+

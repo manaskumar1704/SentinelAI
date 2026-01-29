@@ -61,13 +61,13 @@ UNIVERSITY_CLASSIFIER_PROMPT = """You are an expert university admissions analys
 {university_data}
 
 # RESPONSE FORMAT (JSON):
-{
+{{
     "category": "dream|target|safe",
     "confidence": 0.0-1.0,
     "reasons": ["reason1", "reason2", "reason3"],
     "risks": ["risk1", "risk2"],
     "recommendation": "brief recommendation sentence"
-}
+}}
 """
 
 # Timeline Advisor Prompt

@@ -1,7 +1,7 @@
 """
 AI Engine Tests
 
-Tests for AI prompts, RAG pipeline, and Groq integration.
+Tests for AI prompts, AI Classification pipeline, and Groq integration.
 """
 
 import pytest
@@ -99,21 +99,21 @@ class TestPrompts:
         assert "Ever since" in prompt
 
 
-class TestRAGPipeline:
-    """Tests for RAG pipeline."""
+class TestAIClassificationPipeline:
+    """Tests for AI Classification pipeline."""
     
-    def test_build_student_profile_for_rag_empty(self):
+    def test_build_student_profile_for_classification_empty(self):
         """Test profile building with empty data."""
-        from ai_engine.rag_pipeline import build_student_profile_for_rag
+        from ai_engine.rag_pipeline import build_student_profile_for_classification
         
-        profile = build_student_profile_for_rag(None)
+        profile = build_student_profile_for_classification(None)
         
         assert profile["gpa"] is None
         assert profile["education_level"] == "unknown"
     
-    def test_build_student_profile_for_rag_full(self):
+    def test_build_student_profile_for_classification_full(self):
         """Test profile building with full data."""
-        from ai_engine.rag_pipeline import build_student_profile_for_rag
+        from ai_engine.rag_pipeline import build_student_profile_for_classification
         
         onboarding_data = {
             "academic_background": {
@@ -136,7 +136,7 @@ class TestRAGPipeline:
             }
         }
         
-        profile = build_student_profile_for_rag(onboarding_data)
+        profile = build_student_profile_for_classification(onboarding_data)
         
         assert profile["gpa"] == 3.5
         assert profile["education_level"] == "bachelors"

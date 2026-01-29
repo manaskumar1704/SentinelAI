@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     supabase_db_user: str = "postgres"
     supabase_db_password: str = ""
     
-    # Groq AI
-    groq_api_key: str = ""
+    # Google Gemini AI
+    google_api_key: str = ""
     
     # Server
     host: str = "0.0.0.0"

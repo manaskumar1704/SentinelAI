@@ -173,7 +173,7 @@ async def get_recommendations(
     """
     Get AI-powered university recommendations based on user profile.
     
-    Uses Llama 3.3 70B via Groq to intelligently classify universities
+    Uses Google Gemini 2.0 Flash to intelligently classify universities
     as Dream/Target/Safe based on the student's profile.
     
     Args:

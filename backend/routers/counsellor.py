@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from middleware.auth import get_current_user
 from models.user import ClerkUser
-from services.groq_client import chat_with_counsellor, stream_chat_with_counsellor
+from services.gemini_client import chat_with_counsellor, stream_chat_with_counsellor
 from services.onboarding import get_onboarding_data, is_onboarding_complete
 
 

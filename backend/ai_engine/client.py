@@ -1,43 +1,58 @@
 """
-Groq AI Client Wrapper
+Google Gemini AI Client Wrapper
 
-Handles communication with Groq API for the AI Counsellor.
+Handles communication with Google Gemini API for the AI Counsellor.
 """
 
-import os
-from groq import Groq
+import google.generativeai as genai
 from config import get_settings
 
-# Initialize Groq client
-_client = None
+# Singleton for Gemini configuration
+_configured = False
 
-def get_groq_client():
-    global _client
-    if _client is None:
+def configure_gemini_client():
+    global _configured
+    if not _configured:
         settings = get_settings()
-        if not settings.groq_api_key:
-            raise ValueError("GROQ_API_KEY not set")
-        _client = Groq(api_key=settings.groq_api_key)
-    return _client
+        if not settings.google_api_key:
+            raise ValueError("GOOGLE_API_KEY not set")
+        genai.configure(api_key=settings.google_api_key)
+        _configured = True
 
 async def generate_response(
     messages: list[dict],
     temperature: float = 0.7,
-    max_tokens: int = 1024
+    max_tokens: int = 1024,
+    model: str = "gemini-2.0-flash-exp"
 ) -> str:
     """
-    Generate a chat response using Llama 3 via Groq.
+    Generate a chat response using Google Gemini.
     """
-    client = get_groq_client()
+    configure_gemini_client()
     
-    completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        top_p=1,
-        stream=False,
-        stop=None,
+    gemini_model = genai.GenerativeModel(
+        model,
+        generation_config={
+            "temperature": temperature,
+            "max_output_tokens": max_tokens,
+        }
     )
     
-    return completion.choices[0].message.content
+    # Convert messages to Gemini format
+    # Combine all messages into a single prompt for simplicity
+    prompt_parts = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if role == "system":
+            prompt_parts.append(f"System: {content}")
+        elif role == "user":
+            prompt_parts.append(f"User: {content}")
+        elif role == "assistant":
+            prompt_parts.append(f"Assistant: {content}")
+    
+    full_prompt = "\n\n".join(prompt_parts)
+    
+    response = await gemini_model.generate_content_async(full_prompt)
+    
+    return response.text

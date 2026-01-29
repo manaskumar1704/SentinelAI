@@ -1,7 +1,7 @@
 """
 AI Classification Pipeline for University Recommendations
 
-Uses Llama 3.3 70B via Groq for AI-powered university classification
+Uses Google Gemini 2.0 Flash for AI-powered university classification
 and recommendation explainability.
 
 Note: This is Context-Augmented Generation, not Retrieval-Augmented Generation (RAG).
@@ -11,28 +11,28 @@ For small university lists, passing full context is more accurate than vector re
 import asyncio
 import json
 from typing import Optional
-from groq import AsyncGroq
+import google.generativeai as genai
 
 from config import get_settings
 from ai_engine.prompts import get_classifier_prompt, get_recommendation_explainer_prompt
 
-# Singleton pattern for AsyncGroq client
-_async_client: AsyncGroq = None
+# Singleton pattern for Gemini configuration
+_gemini_configured: bool = False
 
 
-def get_async_groq_client() -> AsyncGroq:
-    """Get singleton async Groq client (reuses connections)."""
-    global _async_client
-    if _async_client is None:
+def configure_gemini():
+    """Configure Gemini with API key (singleton pattern)."""
+    global _gemini_configured
+    if not _gemini_configured:
         settings = get_settings()
-        _async_client = AsyncGroq(api_key=settings.groq_api_key)
-    return _async_client
+        genai.configure(api_key=settings.google_api_key)
+        _gemini_configured = True
 
 
 async def classify_university_with_ai(
     student_profile: dict,
     university_data: dict,
-    model: str = "llama-3.3-70b-versatile"
+    model: str = "gemini-2.0-flash-exp"
 ) -> dict:
     """
     Use AI to classify a university as Dream, Target, or Safe.
@@ -40,26 +40,28 @@ async def classify_university_with_ai(
     Args:
         student_profile: Student's onboarding data
         university_data: University information
-        model: Groq model to use
+        model: Gemini model to use
     
     Returns:
         Classification result with category, confidence, and reasons
     """
-    client = get_async_groq_client()
+    configure_gemini()
+    gemini_model = genai.GenerativeModel(
+        model,
+        generation_config={
+            "temperature": 0.3,  # Lower temperature for more deterministic output
+            "max_output_tokens": 512,
+        }
+    )
     
     prompt = get_classifier_prompt(student_profile, university_data)
     
-    response = await client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are a university admissions expert. Respond only with valid JSON."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3,  # Lower temperature for more deterministic output
-        max_tokens=512,
-    )
+    full_prompt = f"""You are a university admissions expert. Respond only with valid JSON.
+
+{prompt}"""
     
-    content = response.choices[0].message.content
+    response = await gemini_model.generate_content_async(full_prompt)
+    content = response.text
     
     # Parse JSON response
     try:
@@ -108,7 +110,7 @@ async def get_recommendation_explanation(
     category: str,
     fit_reasons: list[str],
     risks: list[str],
-    model: str = "llama-3.3-70b-versatile"
+    model: str = "gemini-2.0-flash-exp"
 ) -> str:
     """
     Generate a human-friendly explanation for a university recommendation.
@@ -116,7 +118,14 @@ async def get_recommendation_explanation(
     Returns:
         Explanation text
     """
-    client = get_async_groq_client()
+    configure_gemini()
+    gemini_model = genai.GenerativeModel(
+        model,
+        generation_config={
+            "temperature": 0.7,
+            "max_output_tokens": 512,
+        }
+    )
     
     prompt = get_recommendation_explainer_prompt(
         student_profile=student_profile,
@@ -127,23 +136,19 @@ async def get_recommendation_explanation(
         risks=risks
     )
     
-    response = await client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are an encouraging study abroad counselor. Write warm, personalized explanations."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
-        max_tokens=512,
-    )
+    full_prompt = f"""You are an encouraging study abroad counselor. Write warm, personalized explanations.
+
+{prompt}"""
     
-    return response.choices[0].message.content
+    response = await gemini_model.generate_content_async(full_prompt)
+    
+    return response.text
 
 
 async def batch_classify_universities(
     student_profile: dict,
     universities: list[dict],
-    model: str = "llama-3.3-70b-versatile"
+    model: str = "gemini-2.0-flash-exp"
 ) -> list[dict]:
     """
     Classify multiple universities for a student in parallel.

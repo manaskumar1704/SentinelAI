@@ -1,6 +1,6 @@
 # 🛡️ SentinelAI
 
-SentinelAI is a state-of-the-art, AI-powered study-abroad counselling platform designed to guide students through the complexities of international education. By leveraging advanced LLMs (Groq) and a deterministic 3-layer architecture, SentinelAI provides personalized recommendations, application guidance, and a persistent AI counsellor.
+SentinelAI is a state-of-the-art, AI-powered study-abroad counselling platform designed to guide students through the complexities of international education. By leveraging advanced LLMs (Google Gemini) and a deterministic 3-layer architecture, SentinelAI provides personalized recommendations, application guidance, and a persistent AI counsellor.
 
 ---
 
@@ -8,7 +8,7 @@ SentinelAI is a state-of-the-art, AI-powered study-abroad counselling platform d
 
 - **🧠 Smart Onboarding**: Data-driven profiling to understand academic background, study goals, budget, and readiness. Supports both manual forms and conversational AI flows.
 - **📊 Interactive Dashboard**: A central hub to track profile strength, current stages, and AI-generated to-do lists with real-time updates.
-- **🤖 AI Counsellor (Core)**: A persistent AI agent powered by Groq and a custom RAG pipeline that recommends universities, explains fit/risks, and performs actions on behalf of the user.
+- **🤖 AI Counsellor (Core)**: A persistent AI agent powered by Google Gemini and a custom RAG pipeline that recommends universities, explains fit/risks, and performs actions on behalf of the user.
 - **🎓 University Classification**: Intelligent grouping of universities into **Dream**, **Target**, and **Safe** categories based on user profile and acceptance probability.
 - **🎓 University Locking**: A strategic flow where students lock-in target universities to unlock specific, tailored application guidance.
 - **✅ Application Guidance**: Automated generation of timelines, document checklists, and task tracking for SOPs, transcripts, and exams.
@@ -23,7 +23,7 @@ SentinelAI is organized as a monorepo with a 3-layer architecture for maximum re
 - **/frontend**: A polished Next.js 15 application built with TypeScript, Bun, and TailwindCSS. Uses Supabase for authentication and Framer Motion for premium animations.
 - **/backend**: A high-performance FastAPI service handling AI orchestration, data management, and business logic. Uses `uv` for dependency management and SQLModel for database interactions.
 - **/directives**: Contains Standard Operating Procedures (SOPs) in Markdown that define how the AI agent and backend modules operate.
-- **AI Engine (within backend)**: A custom-built engine utilizing Groq for fast inference and a RAG pipeline for context-aware counselling.
+- **AI Engine (within backend)**: A custom-built engine utilizing Google Gemini for fast inference and a RAG pipeline for context-aware counselling.
 
 ---
 
@@ -42,7 +42,7 @@ SentinelAI is organized as a monorepo with a 3-layer architecture for maximum re
 
 - **Framework**: FastAPI
 - **Language**: Python 3.11+
-- **AI Engine**: Groq (LLM Orchestration)
+- **AI Engine**: Google Gemini (LLM Orchestration)
 - **Database**: Supabase (PostgreSQL)
 - **ORM**: SQLModel (SQLAlchemy + Pydantic)
 - **Dependency Management**: `uv`
@@ -56,14 +56,14 @@ SentinelAI is organized as a monorepo with a 3-layer architecture for maximum re
 - **Bun** (for frontend)
 - **Python 3.11+** and **uv** (for backend)
 - **Supabase Account**: For Authentication and PostgreSQL database.
-- **Groq API Key**: For the AI Counsellor features.
+- **Google API Key**: For the AI Counsellor features (Gemini API).
 
 ### 2. Backend Setup
 
 ```bash
 cd backend
 uv sync
-# Copy .env.example to .env and fill in your keys (Supabase, Groq)
+# Copy .env.example to .env and fill in your keys (Supabase, Google Gemini)
 uv run uvicorn main:app --reload
 ```
 

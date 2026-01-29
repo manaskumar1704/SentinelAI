@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { CheckCircle, Circle, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
+import { CheckCircle, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 // Types
 type Stage = {
@@ -37,17 +37,26 @@ const MOCK_TASKS = [
 ];
 
 export default function DashboardPage() {
-    const { getToken } = useAuth();
     const router = useRouter();
+    const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [stageInfo, setStageInfo] = useState<UserStage | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const supabase = createClient();
+
         const fetchData = async () => {
             try {
-                const token = await getToken();
-                if (!token) return;
+                const { data: { session } } = await supabase.auth.getSession();
+                setSession(session);
+
+                if (!session) {
+                    router.push("/");
+                    return;
+                }
+
+                const token = session.access_token;
 
                 const [profileRes, stageRes] = await Promise.all([
                     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/user/profile`, {
@@ -78,7 +87,7 @@ export default function DashboardPage() {
         };
 
         fetchData();
-    }, [getToken, router]);
+    }, [router]);
 
     if (loading) {
         return (
@@ -109,7 +118,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-medium uppercase tracking-wider">Control Center</span>
                     </div>
                     <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 font-heading">
-                        Welcome back, {profile?.full_name?.split(" ")[0] || "Student"}.
+                        Welcome back, {profile?.full_name?.split(" ")[0] || session?.user?.user_metadata?.full_name?.split(" ")[0] || "Student"}.
                     </h1>
                     <p className="text-muted-foreground">Here is what you need to focus on today.</p>
                 </motion.div>
@@ -185,7 +194,7 @@ export default function DashboardPage() {
                                 Action Items
                             </h3>
                             <div className="space-y-3">
-                                {MOCK_TASKS.map((task, idx) => (
+                                {MOCK_TASKS.map((task) => (
                                     <div
                                         key={task.id}
                                         className="group flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-4 transition-colors hover:border-primary/30 hover:bg-white/10"
@@ -250,4 +259,3 @@ export default function DashboardPage() {
         </motion.div>
     );
 }
-

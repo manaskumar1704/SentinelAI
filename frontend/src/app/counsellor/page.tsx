@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, User, Bot, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 type Message = {
     id: string;
@@ -15,7 +16,7 @@ type Message = {
 };
 
 export default function CounsellorPage() {
-    const { getToken } = useAuth();
+    const [session, setSession] = useState<Session | null>(null);
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "welcome",
@@ -27,6 +28,13 @@ export default function CounsellorPage() {
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+        });
+    }, []);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -37,7 +45,7 @@ export default function CounsellorPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || loading) return;
+        if (!input.trim() || loading || !session) return;
 
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -50,11 +58,7 @@ export default function CounsellorPage() {
         setLoading(true);
 
         try {
-            const token = await getToken();
-
-            // We'll use the non-streaming endpoint for simplicity in this version, 
-            // or implement basic streaming handling if preferred. 
-            // Let's implement full streaming for a premium feel.
+            const token = session.access_token;
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counsellor/stream`, {
                 method: "POST",
@@ -108,7 +112,6 @@ export default function CounsellorPage() {
 
         } catch (error) {
             console.error(error);
-            // Remove the failed placeholder if it exists and is empty, or add error message
         } finally {
             setLoading(false);
         }
@@ -193,4 +196,3 @@ export default function CounsellorPage() {
         </motion.div>
     );
 }
-

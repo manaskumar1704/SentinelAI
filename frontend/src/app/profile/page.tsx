@@ -1,20 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
-import { Save, User, GraduationCap, Globe, Banknote, BookOpen, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Save, GraduationCap, Globe, Banknote, BookOpen, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 // Reusing types from onboarding (in a real app, these would be in a shared types file)
 type OnboardingData = {
-    academic_background: any;
-    study_goal: any;
-    budget: any;
-    exams_readiness: any;
+    academic_background: Record<string, unknown>;
+    study_goal: Record<string, unknown>;
+    budget: Record<string, unknown>;
+    exams_readiness: Record<string, unknown>;
 };
 
 const SECTIONS = [
@@ -25,16 +25,25 @@ const SECTIONS = [
 ];
 
 export default function ProfilePage() {
-    const { getToken } = useAuth();
+    const [session, setSession] = useState<Session | null>(null);
     const [data, setData] = useState<OnboardingData | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [openSection, setOpenSection] = useState<string | null>("academic_background");
 
     useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+        });
+    }, []);
+
+    useEffect(() => {
         const fetchProfile = async () => {
+            if (!session) return;
+
             try {
-                const token = await getToken();
+                const token = session.access_token;
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/onboarding`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -49,15 +58,15 @@ export default function ProfilePage() {
             }
         };
         fetchProfile();
-    }, [getToken]);
+    }, [session]);
 
     const handleSave = async () => {
-        if (!data) return;
+        if (!data || !session) return;
         setSaving(true);
         try {
-            const token = await getToken();
+            const token = session.access_token;
             await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/onboarding`, {
-                method: "POST", // Using POST to overwrite/update
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
@@ -71,7 +80,7 @@ export default function ProfilePage() {
         }
     };
 
-    const updateField = (section: string, field: string, value: any) => {
+    const updateField = (section: string, field: string, value: unknown) => {
         if (!data) return;
         setData({
             ...data,
@@ -129,21 +138,15 @@ export default function ProfilePage() {
                                         transition={{ duration: 0.2 }}
                                     >
                                         <div className="border-t border-white/5 p-6 space-y-4">
-                                            {/* 
-                          Ideally we'd reuse the form fields from Onboarding here.
-                          For MVP brevity, I'll render a JSON dump or basic inputs. 
-                          Let's render basic inputs for the main fields.
-                       */}
-
                                             {Object.keys(data[section.id as keyof OnboardingData]).map((key) => {
-                                                const val = (data[section.id as keyof OnboardingData] as any)[key];
-                                                if (typeof val === 'object' && val !== null && !Array.isArray(val)) return null; // Skip nested objects if any
+                                                const val = (data[section.id as keyof OnboardingData] as Record<string, unknown>)[key];
+                                                if (typeof val === 'object' && val !== null && !Array.isArray(val)) return null;
 
                                                 return (
                                                     <div key={key} className="space-y-2">
                                                         <Label className="capitalize">{key.replace(/_/g, " ")}</Label>
                                                         <Input
-                                                            value={Array.isArray(val) ? val.join(", ") : val || ""}
+                                                            value={Array.isArray(val) ? (val as string[]).join(", ") : String(val || "")}
                                                             onChange={(e) => {
                                                                 const newVal = Array.isArray(val) ? e.target.value.split(", ") : e.target.value;
                                                                 updateField(section.id, key, newVal);

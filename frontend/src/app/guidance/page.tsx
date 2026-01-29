@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, FileText, Calendar, Clock, ChevronRight, CircleDollarSign } from "lucide-react";
+import { CheckCircle2, Circle, FileText, ChevronRight, CircleDollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 // Mock data for guidance (since backend endpoints for this part were identified as missing)
 const GUIDANCE_STEPS = [
@@ -25,21 +26,38 @@ const GUIDANCE_STEPS = [
     }
 ];
 
+type ShortlistedUniversity = {
+    university: {
+        name: string;
+        country: string;
+    };
+    is_locked: boolean;
+};
+
 export default function GuidancePage() {
-    const { getToken } = useAuth();
-    const [lockedUnis, setLockedUnis] = useState<any[]>([]);
+    const [session, setSession] = useState<Session | null>(null);
+    const [lockedUnis, setLockedUnis] = useState<ShortlistedUniversity[]>([]);
     const [selectedUni, setSelectedUni] = useState<string | null>(null);
 
     useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+        });
+    }, []);
+
+    useEffect(() => {
         const fetchLocked = async () => {
+            if (!session) return;
+
             try {
-                const token = await getToken();
+                const token = session.access_token;
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/universities/shortlist`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
                     const list = await res.json();
-                    const locked = list.filter((u: any) => u.is_locked);
+                    const locked = list.filter((u: ShortlistedUniversity) => u.is_locked);
                     setLockedUnis(locked);
                     if (locked.length > 0) setSelectedUni(locked[0].university.name);
                 }
@@ -48,7 +66,7 @@ export default function GuidancePage() {
             }
         };
         fetchLocked();
-    }, [getToken]);
+    }, [session]);
 
     if (lockedUnis.length === 0) {
         return (
@@ -151,4 +169,3 @@ export default function GuidancePage() {
         </motion.div>
     );
 }
-

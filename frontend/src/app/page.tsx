@@ -3,20 +3,40 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, Globe2, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
+import { createClient } from "@/lib/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 export default function Home() {
-  const { isSignedIn, isLoaded } = useUser();
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.push("/dashboard");
-    }
-  }, [isLoaded, isSignedIn, router]);
+    const supabase = createClient();
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+
+      if (session) {
+        router.push("/dashboard");
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        if (session) {
+          router.push("/dashboard");
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -34,7 +54,15 @@ export default function Home() {
     show: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 50 } },
   };
 
-  if (isLoaded && isSignedIn) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <motion.div
@@ -85,23 +113,16 @@ export default function Home() {
         </motion.div>
 
         <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <Button size="lg" className="h-12 px-8 text-base rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90">
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            <Link href="/dashboard">
-              <Button size="lg" className="h-12 px-8 text-base rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90">
-                Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </SignedIn>
-          <Button variant="outline" size="lg" className="h-12 px-8 text-base rounded-full border-2 hover:bg-muted/50 transition-all duration-300 border-primary/20 text-foreground hover:text-primary">
-            Learn Flow
-          </Button>
+          <Link href="/auth/signup">
+            <Button size="lg" className="h-12 px-8 text-base rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90">
+              Get Started <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href="/auth/login">
+            <Button variant="outline" size="lg" className="h-12 px-8 text-base rounded-full border-2 hover:bg-muted/50 transition-all duration-300 border-primary/20 text-foreground hover:text-primary">
+              Sign In
+            </Button>
+          </Link>
         </motion.div>
 
         {/* Feature Grid */}
@@ -139,4 +160,3 @@ export default function Home() {
     </main>
   );
 }
-

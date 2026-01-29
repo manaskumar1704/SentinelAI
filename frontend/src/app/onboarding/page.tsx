@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
 import { ArrowRight, Check, ChevronLeft, GraduationCap, Globe, Banknote, BookOpen, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 // Types matching backend models
 type OnboardingData = {
@@ -72,12 +73,22 @@ const STEPS = [
 
 export default function OnboardingPage() {
     const router = useRouter();
-    const { getToken } = useAuth();
+    const [session, setSession] = useState<Session | null>(null);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<OnboardingData>(INITIAL_DATA);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const updateField = (section: keyof OnboardingData, field: string, value: any) => {
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            if (!session) {
+                router.push("/");
+            }
+        });
+    }, [router]);
+
+    const updateField = (section: keyof OnboardingData, field: string, value: unknown) => {
         setFormData((prev) => ({
             ...prev,
             [section]: {
@@ -100,9 +111,11 @@ export default function OnboardingPage() {
     };
 
     const handleSubmit = async () => {
+        if (!session) return;
+
         try {
             setIsSubmitting(true);
-            const token = await getToken();
+            const token = session.access_token;
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/onboarding`, {
                 method: "POST",

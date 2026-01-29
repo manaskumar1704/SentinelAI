@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Search, MapPin, DollarSign, Lock, Unlock, AlertTriangle, CheckCircle2, Bookmark, Star, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { MapPin, Lock, Unlock, AlertTriangle, CheckCircle2, Bookmark, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 type University = {
     name: string;
@@ -34,18 +35,36 @@ type ShortlistedUniversity = {
 };
 
 export default function UniversitiesPage() {
-    const { getToken } = useAuth();
+    const router = useRouter();
+    const [session, setSession] = useState<Session | null>(null);
     const [activeTab, setActiveTab] = useState<"recommendations" | "shortlist">("recommendations");
     const [recommendations, setRecommendations] = useState<UniversityRecommendation[]>([]);
     const [shortlist, setShortlist] = useState<ShortlistedUniversity[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const getToken = useCallback(async () => {
+        if (!session) return null;
+        return session.access_token;
+    }, [session]);
+
+    // Initialize session
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            if (!session) {
+                router.push("/");
+            }
+        });
+    }, [router]);
+
     // Fetch data
     useEffect(() => {
         const fetchData = async () => {
+            if (!session) return;
+
             try {
-                const token = await getToken();
-                if (!token) return;
+                const token = session.access_token;
 
                 setLoading(true);
                 const [recsRes, shortRes] = await Promise.all([
@@ -62,7 +81,7 @@ export default function UniversitiesPage() {
             }
         };
         fetchData();
-    }, [getToken, activeTab]);
+    }, [session, activeTab]);
 
     const addToShortlist = async (uni: University, category: string) => {
         try {
@@ -264,4 +283,3 @@ export default function UniversitiesPage() {
         </div>
     );
 }
-

@@ -31,7 +31,7 @@ async def generate_response(
     client = get_groq_client()
     
     completion = client.chat.completions.create(
-        model="llama3-70b-8192",  # Or llama-3.3-70b-versatile if available
+        model="llama-3.3-70b-versatile",
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
